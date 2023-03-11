@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<title>Chess Clock</title>
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" />
+<meta charset="UTF-8" />
+<style>
+body{
+	margin: 0;
+	padding: 0;
+	background:#000;
+}
+#timer1{
+	position:absolute;
+	top:30px;
+	height:calc(40% - 30px);
+	width:100%;
+	text-align:center;
+	font-family:sans-serif;
+	font-size:8em;
+	background-color:gray;
+	transform: rotate(180deg);
+}
+#controls{
+	position:absolute;
+	top: 40%;
+	height:20%;
+	width:100%;
+}
+#timer2{
+	position:absolute;
+	display:table-cell;
+	vertical-align:middle;
+	bottom:30px;
+	height:calc(40% - 30px);
+	width:100%;
+	text-align:center;
+	font-family:sans-serif;
+	font-size:8em;
+	background-color:gray;
+}
+#buttons{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	user-select:none;
+}
+#clock1{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	user-select:none;
+}
+#clock2{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	user-select:none;
+}
+.active{
+	background-color:#ffc107 !important;
+}
+.btn{
+	font-size:4em;
+	color:white;
+	margin:0 20px;
+}
+</style>
+</head>
+<body>
+<div id="timer1" onclick="clock1();"><div id="clock1">05:00</div></div>
+<div id="controls"><div id="buttons"><i onclick="razClock();" id="raz" class="fas fa-sync-alt btn"></i> <i onclick="pauseClock();" id="pause" class="fas fa-pause btn"></i> <i onclick="changeTime();" id="time" class="far fa-hourglass btn"></i></div></div>
+<div id="timer2" onclick="clock2();"><div id="clock2">05:00</div></div>
+<script type="text/javascript">
+	timer = 3000;
+	timerJ1 = 3000;
+	timerJ2 = 3000;
+	roundJ1 = 0;
+	roundJ2 = 0;
+	turnJ1 = false;
+	turnJ2 = false;
+	activeJ1 = false;
+	activeJ2 = false;
+	pause = false;
+	stop = false;
+	var audio = new Audio();
+	
+	function getQuerystring(key, default_) {
+		if (default_==null) default_="";
+		key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
+		var qs = regex.exec(window.location.href);
+		if(qs == null) return null; else return qs[1];
+	}
+	if(getQuerystring("t") != null){
+		timer = parseInt(getQuerystring("t"))*10;
+	}
+	timerJ1 = timer;
+	timerJ2 = timer;
+	document.getElementById("clock1").innerHTML = formatTime(timerJ1/10);
+	document.getElementById("clock2").innerHTML = formatTime(timerJ2/10);
+	function majClock1(){
+		if(timerJ1 > 0){
+			timerJ1--;
+			document.getElementById("clock1").innerHTML = formatTime(timerJ1/10);
+		} else {
+			stopClock();
+		}
+	}
+	function majClock2(){
+		if(timerJ2 > 0){
+			timerJ2--;
+			document.getElementById("clock2").innerHTML = formatTime(timerJ2/10);
+		} else {
+			stopClock();
+		}
+		
+	}
+	function clock1(){
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		if((!activeJ2)&&(!pause)&&(!stop)){
+			activeJ1 = false;
+			activeJ2 = true;
+			if(turnJ1){
+				clearInterval(turnJ1);
+				turnJ1 = false;
+			}
+			turnJ2 = setInterval(majClock2, 100);
+			document.getElementById("timer1").className = "";
+			document.getElementById("timer2").className = "active";
+			
+		}
+	}
+	function clock2(){
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		if((!activeJ1)&&(!pause)&&(!stop)){
+			activeJ2 = false;
+			activeJ1 = true;
+			if(turnJ2){
+				clearInterval(turnJ2);
+				turnJ2 = false;
+			}
+			turnJ1 = setInterval(majClock1, 100);
+			document.getElementById("timer2").className = "";
+			document.getElementById("timer1").className = "active";
+			
+		}
+	}
+	function formatTime(time) {
+		let minutes = Math.floor(time / 60);
+		let seconds = Math.floor(time % 60);
+		if (seconds < 10) {
+			seconds = `0${seconds}`;
+		}
+		if (minutes < 10) {
+			minutes = `0${minutes}`;
+		}
+		return `${minutes}:${seconds}`;
+	}
+	function razClock() {
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		if(confirm("Êtes-vous certain de vouloir réinitialiser le compteur ?")){
+			clearInterval(turnJ1);
+			clearInterval(turnJ2);
+			turnJ1 = false;
+			turnJ2 = false;
+			activeJ1 = false;
+			activeJ2 = false;
+			timerJ1 = timer;
+			timerJ2 = timer;
+			pause = false;
+			stop = false;
+			audio.src = '';
+			document.getElementById("pause").className = "fas fa-pause btn";
+			document.getElementById("clock1").innerHTML = formatTime(timerJ1/10);
+			document.getElementById("clock2").innerHTML = formatTime(timerJ2/10);
+			document.getElementById("timer1").className = "";
+			document.getElementById("timer2").className = "";			
+		}
+	}
+	function changeTime() {
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		newtime = prompt("Combien de temps souhaitez-vous attribuer à chaque joueur ? [MM:SS]");
+		if(newtime != ""){
+			tabtime = newtime.split(":");
+			if(parseInt(tabtime[0]) + parseInt(tabtime[1]) >= 0){
+				timer = parseInt(tabtime[0])*600 + parseInt(tabtime[1])*10;
+				clearInterval(turnJ1);
+				clearInterval(turnJ2);
+				turnJ1 = false;
+				turnJ2 = false;
+				activeJ1 = false;
+				activeJ2 = false;
+				timerJ1 = timer;
+				timerJ2 = timer;
+				pause = false;
+				stop = false;
+				audio.src = '';
+				document.getElementById("pause").className = "fas fa-pause btn";
+				document.getElementById("clock1").innerHTML = formatTime(timerJ1/10);
+				document.getElementById("clock2").innerHTML = formatTime(timerJ2/10);
+				document.getElementById("timer1").className = "";
+				document.getElementById("timer2").className = "";
+			}
+		}
+	}
+	function stopClock() {
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		clearInterval(turnJ1);
+		clearInterval(turnJ2);
+		stop = true;
+		audio.play();
+	}
+	function pauseClock() {
+		if(audio.src == ""){
+			audio.play();
+			audio.src = 'end.wav';
+		}
+		if(!pause){
+			clearInterval(turnJ1);
+			clearInterval(turnJ2);
+			pause = true;
+			document.getElementById("pause").className = "fas fa-play btn";
+		} else {
+			pause = false;
+			document.getElementById("pause").className = "fas fa-pause btn";
+			if(activeJ1){
+				turnJ1 = setInterval(majClock1, 100);
+			} else if(activeJ2){
+				turnJ2 = setInterval(majClock2, 100);
+			}
+		}
+	}
+</script>
+</body>
+</html>
